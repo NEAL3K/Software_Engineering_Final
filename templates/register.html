@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>注册页面</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .register-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        .register-container h2 {
+            color: #333;
+        }
+
+        .register-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .register-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .register-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .form-group .radio-group {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .form-group .radio-group label {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-container">
+        <h2>注册</h2>
+        {% if error %}
+        <div class="alert" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+        <form class="register-form" action="/register/" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" placeholder="请输入密码" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">确认密码:</label>
+                <input type="password" id="confirm-password" name="confirm_password" placeholder="请确认密码" required>
+            </div>
+            <div class="form-group">
+                <label for="email">电子邮件:</label>
+                <input type="email" id="email" name="email" placeholder="请输入电子邮件" required>
+            </div>
+            <div class="form-group">
+                <label for="sex">性别:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="sex" value="M"> 男</label>
+                    <label><input type="radio" name="sex" value="F"> 女</label>
+                    <label><input type="radio" name="sex" value="O"> 其他</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="birthday">生日:</label>
+                <input type="date" id="birthday" name="birthday" required>
+            </div>
+            <div class="form-group">
+                <label for="address">地址:</label>
+                <input type="text" id="address" name="address" placeholder="请输入地址" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">电话:</label>
+                <input type="tel" id="phone" name="phone" placeholder="请输入电话" required>
+            </div>
+            <button type="submit" class="register-btn">注册</button>
+            <button type="button" class="register-btn" onclick="goToLogin()">返回</button>
+        </form>
+    </div>
+
+    <script>
+        {% if error %}
+        alert('{{ error }}');
+        {% endif %}
+    </script>
+
+    <script>
+        function goToLogin() {
+            window.location.href = '/login/';
+        }
+    </script>
+</body>
+
+</html>

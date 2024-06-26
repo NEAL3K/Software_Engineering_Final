@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台管理</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* 禁止整个页面滚动 */
+        }
+
+        .pg-header {
+            height: 64px;
+            /* 调整高度 */
+            background-color: #65bcfe;
+            line-height: 64px;
+            text-align: center;
+            position: fixed;
+            /* 使标题固定在页面顶部 */
+            width: 100%;
+            /* 使标题覆盖页面的整个宽度 */
+            top: 0;
+            /* 确保标题在页面顶部 */
+            left: 0;
+            padding-top: 16px;
+            /* 添加顶部内边距 */
+            z-index: 1000;
+            /* 确保标题在其他内容之上 */
+        }
+
+
+        .pg-header h4 {
+            margin: 0;
+            color: white;
+            font-size: 2em;
+            /* 调整标题字体大小 */
+        }
+
+        .pg-menu {
+            width: 200px;
+            position: fixed;
+            top: 48px;
+            right: 0;
+            bottom: 0;
+            background: #7cc6ff;
+            text-align: center;
+            padding-top: 64px;
+            font-size: 1.25em;
+            /* 调整侧栏字体大小 */
+        }
+
+        .pg-content {
+            position: absolute;
+            left: 0;
+            top: 48px;
+            right: 200px;
+            bottom: 0;
+            overflow: auto;
+            background: #f5f0ec;
+            padding: 20px;
+        }
+
+        #avatar img:hover {
+            border: 1px solid red;
+        }
+
+        #avatar ul li:hover {
+            font-weight: bold;
+        }
+
+        .breadcrumb {
+            font-size: 1.2em;
+            margin: 10px 0;
+            padding: 10px 15px;
+            list-style: none;
+            background-color: #d3d3da;
+            border-radius: 4px;
+        }
+
+        .breadcrumb li {
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .breadcrumb_alert {
+            font-size: 1.2em;
+            margin: 10px 0;
+            padding: 10px 15px;
+            list-style: none;
+            background-color: #adadad;
+            border-radius: 4px;
+        }
+
+        .breadcrumb2_alert li {
+            color: rgb(255, 0, 0) !important;
+        }
+
+        /* 分页使用的样式 */
+        .pagination {
+            margin: 0;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            cursor: not-allowed;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .page-item.active .page-link {
+            z-index: 1;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        /* 行内编辑样式 */
+        .editable:hover {
+            cursor: pointer;
+            background-color: #f0f8ff;
+            color: blue;
+        }
+
+        .editable img:hover {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+
+<body>
+    <div class="pg-header">
+        <h4>超市库存管理系统</h4>
+    </div>
+
+    <div class="pg-menu">
+        <ul style="list-style: none; padding: 0;">
+            <li style="height: 30px; line-height: 30px;">
+                <a href="/inventory/" style="color: white; font-weight: bold;">库存管理</a>
+            </li>
+            <li style="height: 30px; line-height: 30px;">
+                <a href="/importi/" style="color: white; font-weight: bold;">进货管理</a>
+            </li>
+            <li style="height: 30px; line-height: 30px;">
+                <a href="/exporti/" style="color: white; font-weight: bold;">销售管理</a>
+            </li>
+            <li style="height: 30px; line-height: 30px;">
+                <a href="/home/" style="color: white; font-weight: bold;">返回首页</a>
+            </li>
+            <li style="height: 30px; line-height: 30px;">
+                <a href="/logout/" style="color: white; font-weight: bold;">退出登录</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="pg-content">
+        {% if flag == 1 %}
+        <ol class="breadcrumb_alert">
+            <li class="active">您没有此权限</li>
+        </ol>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="/static/js/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+    {% block js %}{% endblock %}
+</body>
+
+</html>

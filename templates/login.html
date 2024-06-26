@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>超市库存系统登录</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        .login-container h2 {
+            color: #333;
+        }
+
+        .login-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .login-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .register-btn {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .register-btn:hover {
+            background-color: #218838;
+        }
+
+        .alert {
+            color: red;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>线上商店系统登录</h2>
+        {% if error %}
+        <div class="alert" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+        <form class="login-form" action="" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" class="form-control" name="username" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" class="form-control" name="pwd" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="login-btn">登录</button>
+            <button type="button" class="register-btn" onclick="goToReg()">注册</button>
+        </form>
+    </div>
+
+    <script>
+        function goToReg() {
+            // 使用 JavaScript 进行页面重定向
+            window.location.href = '/register';
+        }
+
+        {% if error %}
+        alert('{{ error }}');
+        {% endif %}
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,379 @@
+{% extends "layout.html" %}
+{% block css %}
+<style>
+    .shadow {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: black;
+        opacity: 0.4;
+        z-index: 999;
+    }
+
+    .modal_layer {
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 50%;
+        background-color: white;
+        width: 400px;
+        height: 150px;
+        margin-top: -150px;
+        margin-left: -200px;
+    }
+
+    input[readonly] {
+        /* 一定要!important */
+        background-color: #d1d1d1 !important;
+        color: #000000;
+        /* 显示不允许编辑的光标 */
+        cursor: not-allowed
+    }
+
+    .below-alert,
+    .below-alert:hover {
+        background-color: rgb(251, 143, 143) !important;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<ol class="breadcrumb">
+    <li class="active">进货管理</li>
+</ol>
+<div class="col-md-12">
+    <a class="btn btn-default " style="margin-bottom:5px;background: #ffffff;" href="javascript:;" id="add_modal">添加</a>
+    <a class="btn btn-default " style="margin-bottom:5px;background: #ffffff;" href="javascript:;"
+        onclick="redirectToLog()">进货日志</a>
+    <div class="shadow hide" id="shadow"></div>
+    <!--信息展示-->
+    <table class="table table-hover text-center" style="background: white;margin-bottom: 0">
+        <tr>
+            <!--表头-->
+            <th class="text-center">商品ID</th>
+            <th class="text-center">商品名称</th>
+            <th class="text-center">商品数量</th>
+            <!-- <th class="text-center">商品价格</th> -->
+            <th class="text-center">预警数量</th>
+            <th class="text-center">操作</th>
+        </tr>
+        {% for row in posts.object_list %}
+        <!-- 隐藏起quantity，但是在后续可以访问 -->
+        <tr data-quantity="{{ row.quantity }}" class="{% if row.is_below_alert %}below-alert{% endif %}">
+            <td>{{ row.product_id }}</td>
+            <td>{{ row.product_name }}</td>
+            <!-- <td>{{ row.price }}</td> -->
+            <td>{{ row.quantity }}</td>
+            <td>{{ row.alert_quantity }}</td>
+            <td>
+                <a href="javascript:;" onclick="importi(this)">进货录入</a>
+                <!-- <a href="javascript:;" onclick="log(this)">日志</a> -->
+            </td>
+            <!-- <td style="display: none;">{{ row.quantity }}</td> -->
+        </tr>
+        {% endfor %}
+    </table>
+    <!--分页-->
+    <nav aria-label="Page navigation" class="d-flex justify-content-between align-items-center">
+        <ul class="pagination">
+            <li class="page-item {% if not posts.has_previous %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if posts.has_previous %}?page={{ posts.previous_page_number }}{% else %}#{% endif %}">
+                    上一页
+                </a>
+            </li>
+        </ul>
+        <ul class="pagination">
+            {% for num in posts.paginator.page_range %}
+            {% if posts.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="#">{{ num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        <ul class="pagination">
+            <li class="page-item {% if not posts.has_next %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if posts.has_next %}?page={{ posts.next_page_number }}{% else %}#{% endif %}">
+                    下一页
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!--信息展示-->
+    <!--添加信息模态框-->
+    <div class="modal_layer hide" id="modal_add">
+        <div class="panel panel-danger">
+            <div class="panel-heading" style="font-weight: bold; background: #65bcfe;">添加商品信息
+                <button type="button" class="close" id="close_add_modal"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="panel-body">
+                <form id="add-form">
+                    <!--输入要插入的行的product_name-->
+                    <div class="form-group">
+                        <label for="">商品名称</label>
+                        <input type="text" name="add_product_name" class="form-control" id="add_product_name"
+                            placeholder="" autofocus>
+                    </div>
+                    <!--输入要插入的行的quantity-->
+                    <div class="form-group">
+                        <label for="">进货数量</label>
+                        <input type="text" name="add_quantity" class="form-control" id="add_quantity" placeholder=""
+                            autofocus>
+                    </div>
+                    <!--上传商品图片-->
+                    <div class="form-group">
+                        <label for="">商品图片</label>
+                        <input type="file" name="add_image" class="form-control" id="add_image">
+                    </div>
+                    <div id="add_error" style="color: red;margin-bottom: 5px"></div>
+                    <input type="button" class="btn" value="添加" id="add" style="background: #65bcfe;">
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--添加信息模态框-->
+    <!--编辑信息模态框-->
+    <div class="modal_layer hide" id="modal_importi">
+        <div class="panel panel-danger">
+            <div class="panel-heading" style="font-weight: bold; background: #65bcfe;">编辑商品信息
+                <button type="button" class="close" id="close_importi_modal"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="panel-body">
+                <form>
+                    <!--输入要更新的行的product_id-->
+                    <div class="form-group">
+                        <label for="">商品ID</label>
+                        <input type="text" name="importi_product_id" class="form-control" id="importi_product_id"
+                            placeholder="" readonly>
+                    </div>
+                    <!--输入要更新的行的product_name-->
+                    <div class="form-group">
+                        <label for="">商品名称</label>
+                        <input type="text" name="importi_product_name" class="form-control" id="importi_product_name"
+                            placeholder="" readonly>
+                    </div>
+                    <!--输入要更新的行的quantity-->
+                    <div class="form-group">
+                        <label for="">进货数量</label>
+                        <input type="text" name="importi_quantity" class="form-control" id="importi_quantity"
+                            placeholder="" autofocus>
+                    </div>
+                    <!--输入要更新的行的price-->
+                    <!-- <div class="form-group">
+                        <label for="">商品价格</label>
+                        <input type="text" name="importi_price" class="form-control" id="importi_price" placeholder=""
+                            readonly>
+                    </div> -->
+                    <!--输入要更新的行的alert_quantity-->
+                    <!-- <div class="form-group">
+                        <label for="">预警数量</label>
+                        <input type="text" name="importi_alert_quantity" class="form-control"
+                            id="importi_alert_quantity" placeholder="" readonly>
+                    </div> -->
+                    <div id="importi_error" style="color: red;margin-bottom: 5px"></div>
+                    <input type="button" class="btn" value="录入" id="importi" style="background: #65bcfe;">
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--编辑信息模态框-->
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    var currentQuantity; // 全局变量
+    //获取csrftoken
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    $(function () {
+        $("#add_modal").click(function () {
+            $('#shadow').removeClass('hide');
+            $('#modal_add').removeClass('hide');
+        });
+        $('#shadow').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_add').addClass('hide');
+            $('#modal_importi').addClass('hide');
+        });
+        $('#close_add_modal').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_add').addClass('hide');
+        });
+        $('#close_importi_modal').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_importi').addClass('hide');
+        });
+        //添加
+        // $('#add').click(function () {
+        //     $.ajax({
+        //         url: './importi_modify_add/', //向modify函数传参
+        //         type: 'POST', //请求类型为POST
+        //         headers: { "X-CSRFToken": csrftoken },//csfrtoken，没有的话会403
+        //         data: {
+        //             'importi_sql': 'INSERT INTO importi_log (product_id, delta_quantity, changed_by) VALUES (%s, %s, %s)',
+        //             'importi_args': [0, $('#add_quantity').val(), '<username>'],
+        //             'inventory_sql': 'insert into inventory(product_name, quantity, price, alert_quantity) values (%s, %s, %s, %s)',
+        //             'inventory_args': [$('#add_product_name').val(), $('#add_quantity').val(), 0, 0]
+        //         },
+        //         success: function (data) {
+        //             if (data.importi_result.status && data.inventory_result.status) {
+        //                 console.log("成功");
+        //                 location.reload(); // 刷新页面
+        //             } else {
+        //                 var message = "";
+        //                 if (!data.inventory_result.status) message += data.inventory_result.msg;
+        //                 if (!data.importi_result.status) message += data.importi_result.msg;
+        //                 $('#add_error').text(message);
+        //             }
+        //         }
+        //     });
+        // });
+        $('#add').click(function () {
+            var formData = new FormData(document.getElementById('add-form'));
+            formData.append('importi_sql', 'INSERT INTO importi_log (product_id, delta_quantity, changed_by) VALUES (%s, %s, %s)');
+            formData.append('importi_args[]', JSON.stringify([0, $('#add_quantity').val(), '<username>']));
+            formData.append('inventory_sql', 'INSERT INTO inventory (product_name, quantity, price, alert_quantity) VALUES (%s, %s, %s, %s)');
+            formData.append('inventory_args[]', JSON.stringify([$('#add_product_name').val(), $('#add_quantity').val(), 0, 0]));
+            formData.append('image', document.getElementById('add_image').files[0]); // 添加图片文件
+
+            $.ajax({
+                url: './importi_modify_add/', //向modify函数传参
+                type: 'POST', //请求类型为POST
+                headers: { "X-CSRFToken": csrftoken },//csfrtoken，没有的话会403
+                data: formData,
+                processData: false, // 告诉jQuery不要去处理发送的数据
+                contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+                success: function (data) {
+                    if (data.importi_result.status && data.inventory_result.status) {
+                        console.log("成功");
+                        location.reload(); // 刷新页面
+                    } else {
+                        var message = "";
+                        if (!data.inventory_result.status) message += data.inventory_result.msg;
+                        if (!data.importi_result.status) message += data.importi_result.msg;
+                        $('#add_error').text(message);
+                    }
+                }
+            });
+        });
+
+
+        //修改
+        $('#importi').click(function () {
+            console.log("Importi button clicked");
+            var deltaQuantity = parseInt($('#importi_quantity').val()); // 增减的数量
+            console.log(deltaQuantity);
+            var newTotalQuantity = currentQuantity + deltaQuantity; // 最终写入inventory的新数量
+            console.log(newTotalQuantity);
+            $.ajax({
+                url: './importi_modify/',
+                type: 'POST',
+                headers: { "X-CSRFToken": csrftoken },
+                data: {
+                    'importi_sql': 'INSERT INTO importi_log (product_id, delta_quantity, changed_by) VALUES (%s, %s, %s)',
+                    'importi_args': [$('#importi_product_id').val(), $('#importi_quantity').val(), '<username>'],
+                    'inventory_sql': 'UPDATE inventory SET product_name = %s, quantity = %s WHERE product_id = %s',
+                    'inventory_args': [$('#importi_product_name').val(), newTotalQuantity, $('#importi_product_id').val()]
+                },
+                success: function (data) {
+                    if (data.importi_result.status && data.inventory_result.status) {
+                        location.reload(); // 刷新页面
+                    } else {
+                        var message = "";
+                        if (!data.inventory_result.status) message += data.inventory_result.msg;
+                        if (!data.importi_result.status) message += data.importi_result.msg;
+                        $('#importi_error').text(message);
+                    }
+                }
+            });
+        });
+
+    })
+
+    function importi(ths) {
+        console.log("importi function called");
+        // 编辑信息前的操作
+        $('#shadow').removeClass('hide');
+        $('#modal_importi').removeClass('hide');
+
+        // 获取当前行的所有单元格
+        var importi_row = $(ths).closest('tr').find('td');
+
+        // 商品ID
+        var product_id = $(importi_row[0]).text();
+        // 商品姓名
+        var product_name = $(importi_row[1]).text();
+        // 商品数量
+        var quantity = $(importi_row[2]).text();
+        // 预警数量
+        var alert_quantity = $(importi_row[3]).text();
+
+        // 将原来的值填进对应的输入框里
+        $('#importi_product_id').val(product_id);
+        $('#importi_product_name').val(product_name);
+        // $('#importi_quantity').val(quantity);
+        // $('#importi_price').val(price); // 这行注释掉的代码可以忽略
+        // $('#importi_alert_quantity').val(alert_quantity); // 这行注释掉的代码可以忽略
+
+        // 获取当前行隐藏的 quantity 值
+        currentQuantity = parseInt($(ths).closest('tr').data('quantity'));
+    }
+
+    function redirectToLog() {
+        let params = new URLSearchParams(window.location.search);
+        let returnTo = params.get('return'); // 获取 'return' 参数的值
+        if (returnTo === 'superadmin') {
+            window.location.href = '/superadmin/';
+        }
+        else {
+            window.location.href = '/importilog/'; // 修改为 log.html 的正确路径
+        }
+    }
+
+    // admin超级管理员模式
+    let inputSequence = '';
+    let lastKeyPressTime = Date.now();
+    document.addEventListener('keypress', function (event) {
+        const key = event.key.toLowerCase();
+        const currentTime = Date.now();
+
+        // 如果两次按键时间间隔超过一秒，则重置输入序列
+        if (currentTime - lastKeyPressTime > 1000) {
+            inputSequence = '';
+        }
+
+        inputSequence += key;
+        lastKeyPressTime = currentTime;
+
+        // 检查输入序列是否为 "admin"
+        if (inputSequence === 'admin') {
+            // 跳转到隐藏的超级管理员界面
+            window.location.href = '/superadmin/';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,409 @@
+{% extends "layout.html" %}
+{% block css %}
+<style>
+    .shadow {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: black;
+        opacity: 0.4;
+        z-index: 999;
+    }
+
+    .modal_layer {
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 50%;
+        background-color: white;
+        width: 400px;
+        height: 150px;
+        margin-top: -150px;
+        margin-left: -200px;
+    }
+
+    input[readonly] {
+        /* 一定要!important */
+        background-color: #d1d1d1 !important;
+        color: #000000;
+        /* 显示不允许编辑的光标 */
+        cursor: not-allowed
+    }
+
+    .below-alert,
+    .below-alert:hover {
+        background-color: rgb(251, 143, 143) !important;
+    }
+
+    /* 分页使用的样式 */
+    .pagination {
+        margin: 0;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .justify-content-between {
+        justify-content: space-between;
+    }
+
+    .align-items-center {
+        align-items: center;
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        cursor: not-allowed;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .page-item.active .page-link {
+        z-index: 1;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .editable:hover {
+        cursor: pointer;
+        color: blue;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<ol class="breadcrumb">
+    <li class="active">销售管理</li>
+</ol>
+<div class="col-md-12">
+    <!-- <a class="btn btn-default " style="margin-bottom:5px;background: #ffffff;" href="javascript:;" id="add_modal">添加</a> -->
+    <a class="btn btn-default " style="margin-bottom:5px;background: #ffffff;" href="javascript:;"
+        onclick="redirectToLog()">销售日志</a>
+    <div class="shadow hide" id="shadow"></div>
+    <!--信息展示-->
+    <table class="table table-hover text-center" style="background: white;margin-bottom: 0">
+        <tr>
+            <!--表头-->
+            <th class="text-center">商品ID</th>
+            <th class="text-center">商品名称</th>
+            <th class="text-center">商品数量</th>
+            <th class="text-center">预警数量</th>
+            <th class="text-center">商品价格</th>
+            <th class="text-center">商品折扣</th>
+            <th class="text-center">累计销售额</th>
+            <!-- <th class="text-center">操作</th> -->
+        </tr>
+        {% for row in posts.object_list %}
+        <!-- 隐藏起quantity，但是在后续可以访问 -->
+        <tr data-quantity="{{ row.quantity }}" class="{% if row.is_below_alert %}below-alert{% endif %}">
+            <td>{{ row.product_id }}</td>
+            <td>{{ row.product_name }}</td>
+            <td>{{ row.quantity }}</td>
+            <td>{{ row.alert_quantity }}</td>
+            <td class="editable" onclick="editPrice('{{ row.product_id }}', '{{ row.price }}')">{{ row.price }}</td>
+            <td class="editable" onclick="editDiscount('{{ row.product_id }}', '{{ row.discount }}')">{{ row.discount }}
+            </td>
+            <td>{{ row.total_sales }}</td>
+            <td>
+                <!-- 销售录入暂时删除 -->
+                <!-- <a href="javascript:;" onclick="exporti(this)">销售录入</a> -->
+                <!-- <a href="javascript:;" onclick="log(this)">日志</a> -->
+            </td>
+            <!-- <td style="display: none;">{{ row.quantity }}</td> -->
+        </tr>
+        {% endfor %}
+    </table>
+    <!--分页-->
+    <nav aria-label="Page navigation" class="d-flex justify-content-between align-items-center">
+        <ul class="pagination">
+            <li class="page-item {% if not posts.has_previous %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if posts.has_previous %}?page={{ posts.previous_page_number }}{% else %}#{% endif %}">
+                    上一页
+                </a>
+            </li>
+        </ul>
+        <ul class="pagination">
+            {% for num in posts.paginator.page_range %}
+            {% if posts.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="#">{{ num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        <ul class="pagination">
+            <li class="page-item {% if not posts.has_next %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if posts.has_next %}?page={{ posts.next_page_number }}{% else %}#{% endif %}">
+                    下一页
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!--信息展示-->
+    <!--编辑信息模态框-->
+    <div class="modal_layer hide" id="modal_edit">
+        <div class="panel panel-danger">
+            <div class="panel-heading" style="font-weight: bold;">编辑商品信息
+                <button type="button" class="close" id="close_edit_modal"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="panel-body">
+                <form id="edit-form">
+                    <!--输入要更新的行的product_id-->
+                    <div class="form-group">
+                        <label for="">商品ID</label>
+                        <input type="text" name="edit_product_id" class="form-control" id="edit_product_id"
+                            placeholder="" readonly>
+                    </div>
+                    <!--输入要更新的行的product_name-->
+                    <div class="form-group hide" id="edit_name_group">
+                        <label for="">商品名称</label>
+                        <input type="text" name="edit_product_name" class="form-control" id="edit_product_name"
+                            placeholder="">
+                    </div>
+                    <!--输入要更新的行的quantity-->
+                    <div class="form-group hide" id="edit_alert_quantity_group">
+                        <label for="">预警数量</label>
+                        <input type="text" name="edit_alert_quantity" class="form-control" id="edit_alert_quantity"
+                            placeholder="">
+                    </div>
+                    <div class="form-group hide" id="edit_price_group">
+                        <label for="">商品价格</label>
+                        <input type="text" name="edit_price" class="form-control" id="edit_price" placeholder="">
+                    </div>
+                    <div class="form-group hide" id="edit_discount_group">
+                        <label for="">商品折扣</label>
+                        <input type="text" name="edit_discount" class="form-control" id="edit_discount" placeholder="">
+                    </div>
+                    <!--输入要更新的行的image-->
+                    <div class="form-group hide" id="edit_image_group">
+                        <label for="">商品图片</label>
+                        <input type="file" name="edit_image" class="form-control" id="edit_image">
+                    </div>
+                    <div id="edit_error" style="color: red;margin-bottom: 5px"></div>
+                    <input type="button" class="btn" value="修改" id="edit" style="background: #f2dede;">
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--编辑信息模态框-->
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    var currentQuantity; // 全局变量
+    //获取csrftoken
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    function getCsrfToken() {
+        let csrfToken = null;
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            let [key, value] = cookie.trim().split('=');
+            if (key === 'csrftoken') {
+                csrfToken = value;
+                break;
+            }
+        }
+        return csrfToken;
+    }
+
+    $(function () {
+        $("#add_modal").click(function () {
+            $('#shadow').removeClass('hide');
+            $('#modal_add').removeClass('hide');
+        });
+        $('#shadow').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_add').addClass('hide');
+            $('#modal_edit').addClass('hide');
+        });
+        $('#close_add_modal').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_add').addClass('hide');
+        });
+        $('#close_edit_modal').click(function () {
+            $('#shadow').addClass('hide');
+            $('#modal_edit').addClass('hide');
+        });
+        //添加
+        $('#add').click(function () {
+            $.ajax({
+                url: './exporti_modify_add/', //向modify函数传参
+                type: 'POST', //请求类型为POST
+                headers: { "X-CSRFToken": csrftoken },//csfrtoken，没有的话会403
+                data: {
+                    'exporti_sql': 'INSERT INTO exporti_log (product_id, delta_quantity, changed_by) VALUES (%s, %s, %s)',
+                    'exporti_args': [0, $('#add_quantity').val(), '<username>'],
+                    'inventory_sql': 'insert into inventory(product_name, quantity, price, alert_quantity) values (%s, %s, %s, %s)',
+                    'inventory_args': [$('#add_product_name').val(), $('#add_quantity').val(), 0, 0]
+                },
+                success: function (data) {
+                    if (data.exporti_result.status && data.inventory_result.status) {
+                        location.reload(); // 刷新页面
+                    } else {
+                        var message = "";
+                        if (!data.inventory_result.status) message += data.inventory_result.msg;
+                        if (!data.exporti_result.status) message += data.exporti_result.msg;
+                        $('#add_error').text(message);
+                    }
+                }
+            });
+        });
+
+        //修改
+        $('#edit').click(function () {
+            const csrftoken = getCsrfToken(); // 获取 CSRF token
+            if (!csrftoken) {
+                console.error('CSRF token not found!');
+                return;
+            }
+            var formData = new FormData(document.getElementById('edit-form'));
+            formData.append('product_id', $('#edit_product_id').val());
+
+            if (!$('#edit_name_group').hasClass('hide')) {
+                formData.append('field', 'name');
+                formData.append('value', $('#edit_product_name').val());
+            } else if (!$('#edit_alert_quantity_group').hasClass('hide')) {
+                formData.append('field', 'alert_quantity');
+                formData.append('value', $('#edit_alert_quantity').val());
+            } else if (!$('#edit_price_group').hasClass('hide')) {
+                formData.append('field', 'price');
+                formData.append('value', $('#edit_price').val());
+            } else if (!$('#edit_discount_group').hasClass('hide')) {
+                formData.append('field', 'discount');
+                formData.append('value', $('#edit_discount').val());
+            } else if (!$('#edit_image_group').hasClass('hide')) {
+                formData.append('field', 'image');
+                formData.append('image', document.getElementById('edit_image').files[0]);
+            }
+
+            $.ajax({
+                url: '/edit_product/',
+                type: 'POST',
+                headers: { "X-CSRFToken": csrftoken },
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    if (data.status) {
+                        location.reload(); // 刷新页面
+                    } else {
+                        $('#edit_error').text(data.msg);
+                    }
+                }
+            });
+        });
+
+    })
+
+    function exporti(ths) {
+        console.log("exporti function called");
+        //编辑信息前的操作
+        $('#shadow').removeClass('hide');
+        $('#modal_exporti').removeClass('hide');
+        //获取当前行的所有值
+        exporti_row = $(ths).parent().prevAll(); //全局变量，因为更新要知道原来的product_id，在另一个函数实现的
+        //商品ID
+        var product_id = $(exporti_row[1]).text();
+        //商品姓名
+        var product_name = $(exporti_row[0]).text();
+        //商品数量，此时是等待输入商品变化量
+        var quantity = "";
+        //商品价格
+        // var price = $(exporti_row[1]).text();
+        //预警数量
+        // var alert_quantity = $(exporti_row[0]).text();
+        //将原来的值填进对应的输入框里
+        $('#exporti_product_id').val(product_id);
+        $('#exporti_product_name').val(product_name);
+        $('#exporti_quantity').val(quantity);
+        // $('#exporti_price').val(price);
+        // $('#exporti_alert_quantity').val(alert_quantity);
+
+        // 获取当前行隐藏的 quantity 值
+        currentQuantity = parseInt($(ths).closest('tr').data('quantity'));
+    }
+
+    function editPrice(productId, price) {
+        $('#edit_product_id').val(productId);
+        $('#edit_price').val(price);
+        $('#edit_price_group').removeClass('hide');
+        $('#edit_name_group').addClass('hide');
+        $('#edit_alert_quantity_group').addClass('hide');
+        $('#edit_image_group').addClass('hide');
+        $('#edit_discount_group').addClass('hide');
+        $('#shadow').removeClass('hide');
+        $('#modal_edit').removeClass('hide');
+    }
+
+    function editDiscount(productId, discount) {
+        $('#edit_product_id').val(productId);
+        $('#edit_discount').val(discount);
+        $('#edit_discount_group').removeClass('hide');
+        $('#edit_price_group').addClass('hide');
+        $('#edit_name_group').addClass('hide');
+        $('#edit_alert_quantity_group').addClass('hide');
+        $('#edit_image_group').addClass('hide');
+        $('#shadow').removeClass('hide');
+        $('#modal_edit').removeClass('hide');
+    }
+
+    function redirectToLog() {
+        let params = new URLSearchParams(window.location.search);
+        let returnTo = params.get('return'); // 获取 'return' 参数的值
+        if (returnTo === 'superadmin') {
+            window.location.href = '/superadmin/';
+        }
+        else {
+            window.location.href = '/exportilog/'; // 修改为 log.html 的正确路径
+        }
+    }
+
+    // admin超级管理员模式
+    let inputSequence = '';
+    let lastKeyPressTime = Date.now();
+    document.addEventListener('keypress', function (event) {
+        const key = event.key.toLowerCase();
+        const currentTime = Date.now();
+
+        // 如果两次按键时间间隔超过一秒，则重置输入序列
+        if (currentTime - lastKeyPressTime > 1000) {
+            inputSequence = '';
+        }
+
+        inputSequence += key;
+        lastKeyPressTime = currentTime;
+
+        // 检查输入序列是否为 "admin"
+        if (inputSequence === 'admin') {
+            // 跳转到隐藏的超级管理员界面
+            window.location.href = '/superadmin/';
+        }
+    });
+</script>
+{% endblock %}
