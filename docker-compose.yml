@@ -14,7 +14,7 @@ services:
   web:
     build:
       context: .
-    command: sh -c "python manage.py migrate && python manage.py loaddata /code/Final_proj.json && python manage.py runserver 0.0.0.0:5000"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:5000"
     volumes:
       - .:/code
     ports:
