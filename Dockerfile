@@ -20,4 +20,4 @@ COPY . /code/
 EXPOSE 5000
 
 # Run the application
-CMD ["conda", "run", "-n", "supermarket", "sh", "-c", "python manage.py migrate && python manage.py loaddata /code/Final_proj.sql && python manage.py runserver 0.0.0.0:5000"]
+CMD ["conda", "run", "-n", "supermarket", "sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:5000"]
