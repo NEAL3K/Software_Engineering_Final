@@ -26,4 +26,4 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/your_project_name:latest
+        tags: ${{ secrets.DOCKER_USERNAME }}/Online_Supermarket:latest
