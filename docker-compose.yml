@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: Software_Final_Project
+      POSTGRES_USER: Software_Engineering_User
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./path/to/Final_proj.sql:/docker-entrypoint-initdb.d/Final_proj.sql
+
+  web:
+    build:
+      context: .
+    command: sh -c "python manage.py migrate && python manage.py loaddata /code/Final_proj.json && python manage.py runserver 0.0.0.0:5000"
+    volumes:
+      - .:/code
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://your_user:your_password@db/your_database
+
+volumes:
+  postgres_data:

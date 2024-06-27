@@ -9,6 +9,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: Software_Final_Project
+          POSTGRES_USER: Software_Engineering_User
+          POSTGRES_PASSWORD: 123456
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout client code
       uses: actions/checkout@v2
@@ -27,3 +40,6 @@ jobs:
       with:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/online_supermarket:latest
+
+    - name: Run Docker Compose
+      run: docker-compose up --build -d
