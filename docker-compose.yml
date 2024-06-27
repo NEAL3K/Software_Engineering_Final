@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 123456
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./path/to/Final_proj.sql:/docker-entrypoint-initdb.d/Final_proj.sql
+      - ./Final_proj.sql:/docker-entrypoint-initdb.d/Final_proj.sql
 
   web:
     build:
@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://your_user:your_password@db/your_database
+      DATABASE_URL: postgres://Software_Engineering_User:123456@db/Software_Final_Project
 
 volumes:
   postgres_data:
