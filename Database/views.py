@@ -31,6 +31,7 @@ def home(request):
         username = request.get_signed_cookie("username", salt="yonghuming")
         pwd = request.get_signed_cookie("pwd", salt="mima")
         # 默认使用给定账户进入主界面
+        """如果是docker分发后在web中使用, 需要把127.0.0.1改成db. 因为docker虚拟子网中使用的ip地址是根据容器的id分配的"""
         user = sql.user("Software_Final_Project", User["username"], User["pwd"], "127.0.0.1", "5432")
         # print(f"cookie username: {username}, pwd: {pwd}")
         if user.user_exists(username):

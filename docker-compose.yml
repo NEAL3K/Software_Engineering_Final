@@ -8,13 +8,16 @@ services:
       POSTGRES_USER: Software_Engineering_User
       POSTGRES_PASSWORD: 123456
     volumes:
+      # 不能换顺序，因为postgres容器先检查有没有var/lib/postgresql/data这个目录
+      # 如果不存在，那它会自动根据docker-entrypoint-initdb.d中的sql文件创建数据库
+      # 而如果目录已经存在，那就不会有初始化操作了。
+      # 或者使用```psql -U Software_Engineering_User -d Software_Final_Project -f /docker-entrypoint-initdb.d/Final_project.sql```命令手动初始化数据库
+      - ./Final_project.sql:/docker-entrypoint-initdb.d/Final_project.sql
       - postgres_data:/var/lib/postgresql/data
-      - ./Final_proj.sql:/docker-entrypoint-initdb.d/Final_proj.sql
 
   web:
-    build:
-      context: .
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:5000"
+    image: neal3k/online_supermarket:latest
+    command: sh -c "conda run -n supermarket python manage.py migrate && conda run -n supermarket python manage.py runserver 0.0.0.0:5000"
     volumes:
       - .:/code
     ports:
