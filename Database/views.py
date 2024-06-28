@@ -19,6 +19,15 @@ User = {
 
 # Create your views here.
 def home(request):
+    """
+    Handle the home page requests.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template.
+    """
     # return redirect("/login/")
     # 从detail或cart接受error参数
     context = {}
@@ -85,6 +94,15 @@ def home(request):
 
 
 def login(request):
+    """
+    Handle the login page requests.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template or redirection.
+    """
     context = {}
     if request.method == "POST":
         # 获取用户名和密码
@@ -148,6 +166,15 @@ def login(request):
 
 
 def register(request):
+    """
+    Handle the registration page requests.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template or redirection.
+    """
     # return HttpResponse("注册页面开发中")
     context = {}
     if request.method == "POST":
@@ -194,7 +221,13 @@ def register(request):
 
 def show_personal_info(request):
     """
-    展示用户订单信息
+    展示用户订单信息。
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template or redirection.
     """
     context = {}
     order_items = []
@@ -203,7 +236,7 @@ def show_personal_info(request):
         # 尝试从 cookie 获取用户名和密码
         # cookie会一直保存在浏览器上，退出登录时清除
         username = request.get_signed_cookie("username", salt="yonghuming")
-        pwd = request.get_signed_cookie("pwd", salt="mima")
+        pwd = request.get_signed_cookie("mima", salt="mima")
         # 默认使用给定账户进入主界面
         user = sql.user("Software_Final_Project", User["username"], User["pwd"], "127.0.0.1", "5432")
         # print(f"cookie username: {username}, pwd: {pwd}")
@@ -230,7 +263,13 @@ def show_personal_info(request):
 
 def cart(request):
     """
-    购物车页面
+    购物车页面。
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template or redirection.
     """
     context = {}
     cart_items = []
@@ -285,7 +324,17 @@ def cart(request):
         return redirect("/cart/")
 
 
+
 def update_cart(request):
+    """
+    Update the shopping cart with the given product and quantity.
+
+    Args:
+        request (HttpRequest): The request object containing POST data with product_id and quantity.
+
+    Returns:
+        JsonResponse: A JSON response indicating success or failure.
+    """
     print("update_cart")
     if request.method == "POST":
         data = json.loads(request.body)
@@ -304,6 +353,15 @@ def update_cart(request):
 
 
 def remove_from_cart(request):
+    """
+    Remove an item from the shopping cart.
+
+    Args:
+        request (HttpRequest): The request object containing POST data with product_id.
+
+    Returns:
+        JsonResponse: A JSON response indicating success or failure.
+    """
     print("remove_from_cart")
     if request.method == "POST":
         data = json.loads(request.body)
@@ -319,6 +377,15 @@ def remove_from_cart(request):
 
 
 def inventory(request):
+    """
+    Display the inventory list.
+
+    Args:
+        request (HttpRequest): The request object containing user and inventory manager information.
+
+    Returns:
+        HttpResponse: The response object with the rendered inventory template.
+    """
     """
     存货信息列表
     """
@@ -354,6 +421,15 @@ def inventory(request):
 
 
 def edit_product(request):
+    """
+    Edit product details in the inventory.
+
+    Args:
+        request (HttpRequest): The request object containing POST data with product details and files.
+
+    Returns:
+        JsonResponse: A JSON response indicating success or failure.
+    """
     if request.method == "POST":
         product_id = request.POST.get("product_id")
         field = request.POST.get("field")
@@ -414,6 +490,15 @@ def edit_product(request):
 
 def importi(request):
     """
+    Display the import information list.
+
+    Args:
+        request (HttpRequest): The request object containing user and import manager information.
+
+    Returns:
+        HttpResponse: The response object with the rendered import information template.
+    """
+    """
     进货信息列表
     :param request:封装了请求相关的所有信息
     :return:返回模板和数据
@@ -447,6 +532,15 @@ def importi(request):
 
 
 def importilog(request):
+    """
+    Display the import log information list.
+
+    Args:
+        request (HttpRequest): The request object containing user and import manager information.
+
+    Returns:
+        HttpResponse: The response object with the rendered import log information template.
+    """
     flag = request.get_signed_cookie("importi_manager", salt="jinhuo")
     if flag != "1":
         return render(request, "layout.html", {"flag": 1})
@@ -491,9 +585,15 @@ def importilog(request):
 
 def exporti(request):
     """
-    销售信息列表
-    :param request:封装了请求相关的所有信息
-    :return:返回模板和数据
+    Handle the exporti request.
+
+    This function processes the sales information list and handles pagination.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template and data.
     """
     flag = request.get_signed_cookie("exporti_manager", salt="xiaoshou")
     if flag != "1":
@@ -524,6 +624,17 @@ def exporti(request):
 
 
 def exportilog(request):
+    """
+    Handle the exportilog request.
+
+    This function processes the export log information list and handles pagination.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The response object with the rendered template and data.
+    """
     flag = request.get_signed_cookie("exporti_manager", salt="xiaoshou")
     if flag != "1":
         return render(request, "layout.html", {"flag": 1})
@@ -559,6 +670,17 @@ def exportilog(request):
 
 
 def modify(request):
+    """
+    Modify the database records.
+
+    This function executes a given SQL query with provided arguments and returns the result.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        JsonResponse: The JSON response with the modification result.
+    """
     # 获取所需sql语句
     sql_query = request.POST.get("sql")
     # 获取sql的参数
@@ -575,6 +697,17 @@ def modify(request):
 
 
 def importi_modify(request):
+    """
+    Handle importi_modify request.
+
+    This function processes the modification of import log and inventory data.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        JsonResponse: The JSON response with the modification results.
+    """
     if request.method == "POST":
         # 处理 importi_log 更新
         importi_sql = request.POST.get("importi_sql")
@@ -607,6 +740,17 @@ def importi_modify(request):
 
 
 def importi_modify_add(request):
+    """
+    Handle importi_modify_add request.
+
+    This function processes the addition and modification of import log and inventory data, including handling file uploads.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        JsonResponse: The JSON response with the modification results and file URL.
+    """
     if request.method == "POST":
         # 处理 importi_log 更新
         importi_sql = request.POST.get("importi_sql")
@@ -663,6 +807,17 @@ def importi_modify_add(request):
 
 
 def exporti_modify(request):
+    """
+    Handle exporti_modify request.
+
+    This function processes the modification of export log and inventory data.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        JsonResponse: The JSON response with the modification results.
+    """
     if request.method == "POST":
         # 处理 exporti_log 更新
         exporti_sql = request.POST.get("exporti_sql")
@@ -694,7 +849,21 @@ def exporti_modify(request):
         return JsonResponse({"error": "Invalid request"})
 
 
+
 def exporti_modify_add(request):
+    """
+    Handle POST requests for modifying export and inventory records.
+
+    This function processes the `exporti_log` and `inventory` updates, retrieves the current user,
+    creates a database connection, and updates the relevant tables. It returns a JSON response 
+    with the results of the updates.
+
+    Args:
+        request (HttpRequest): The request object containing POST data.
+
+    Returns:
+        JsonResponse: The response object with the results of the export and inventory updates.
+    """
     if request.method == "POST":
         # 处理 exporti_log 更新
         exporti_sql = request.POST.get("exporti_sql")
@@ -732,6 +901,18 @@ def exporti_modify_add(request):
 
 
 def superadmin(request):
+    """
+    Handle GET requests for the superadmin page.
+
+    This function retrieves the current user's information, performs a query on the inventory,
+    paginates the results, and renders the `superadmin` template.
+
+    Args:
+        request (HttpRequest): The request object containing GET data.
+
+    Returns:
+        HttpResponse: The response object with the rendered superadmin template.
+    """
     # 提取用户名和密码
     username = request.get_signed_cookie("username", salt="yonghuming")
     pwd = request.get_signed_cookie("pwd", salt="mima")
@@ -757,6 +938,17 @@ def superadmin(request):
 
 
 def logout(request):
+    """
+    Handle logout requests.
+
+    This function deletes user-related cookies and redirects the user to the login page.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponseRedirect: The response object redirecting to the login page.
+    """
     # 删除cookie
     response = HttpResponseRedirect("/login/")
     response.delete_cookie("username")
